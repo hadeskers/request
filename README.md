@@ -18,7 +18,7 @@ Quick start
 
 ```php
 
-$req = new \App\Helpers\Request();
+$req = new \Hadesker\Request\Request();
 $req->setUrl('https://abc.com/login');
 $req->setHeaders([
     'Auth'=> 'Bearer sgafaksdfasd',

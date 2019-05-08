@@ -1,6 +1,6 @@
 <?php
 
-namespace Hadesker\Number2Word;
+namespace Hadesker\Request;
 
 use Illuminate\Support\ServiceProvider;
 
