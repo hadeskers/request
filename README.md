@@ -9,7 +9,7 @@ composer require hadesker/request
 
 Config: 
 ```shell
-Add Hadesker\Request\Request::class to config/app.php
+Add Hadesker\Request\RequestServiceProvider::class to provider block of config/app.php file
 ```
 
 How
@@ -29,6 +29,7 @@ $req->setBodies([
 ]);
 $response = $req->post()->getResponseArray();
 print_r($response);
+die();
 
 ```
 
