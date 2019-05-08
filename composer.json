@@ -1,0 +1,24 @@
+{
+    "name": "hadesker/request",
+    "type": "library",
+    "description": "Make request http cross site",
+    "keywords": ["framework", "laravel", "request","http","curl", "stream", "post", "put", "delete", "get"],
+    "homepage": "http://hadesker.net",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "namnguyen12041994",
+            "email": "namnguyen12041994@gmail.com",
+            "homepage": "http://hadesker.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.5"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Hadesker\\Request\\": "src/"
+        }
+    }
+}
