@@ -50,7 +50,6 @@ class Request
                 'content' => http_build_query($this->bodies ?? []),
             ]
         ];
-
         $context = stream_context_create($options);
         $this->responseContent = file_get_contents($this->buildUrl(), false, $context);
     }
