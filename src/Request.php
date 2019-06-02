@@ -42,7 +42,7 @@ class Request
         $headerString = implode("\r\n", array_map(function ($item, $key){
             return "{$key}: {$item}";
         }, $headers, array_keys($headers)));
-        
+
         $options = [
             'http' => [
                 'method' => $this->method,
@@ -50,6 +50,7 @@ class Request
                 'content' => http_build_query($this->bodies ?? []),
             ]
         ];
+
         $context = stream_context_create($options);
         $this->responseContent = file_get_contents($this->buildUrl(), false, $context);
     }
