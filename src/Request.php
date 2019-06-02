@@ -37,7 +37,7 @@ class Request
     //region Private methods
     private function buildRequest()
     {
-        $headers = $this->headers ?? [];
+        $headers = is_array($this->headers) && count($this->headers) ? $this->headers : [];
         $headers['Content-type'] = $this->formType;
         $headerString = implode("\r\n", array_map(function ($item, $key){
             return "{$key}: {$item}";
@@ -47,7 +47,7 @@ class Request
             'http' => [
                 'method' => $this->method,
                 'header' => $headerString,
-                'content' => http_build_query($this->bodies ?? []),
+                'content' => http_build_query(is_array($this->bodies) && count($this->bodies) ? $this->bodies : []),
             ]
         ];
         $context = stream_context_create($options);
@@ -56,7 +56,7 @@ class Request
 
     private function buildUrl()
     {
-        return $this->url . '?' . http_build_query($this->params ?? []);
+        return $this->url . '?' . http_build_query(is_array($this->params) && count($this->params) ? $this->params : []);
     }
     //endregion
 
@@ -67,7 +67,7 @@ class Request
         return $this;
     }
 
-    public function setMethod(string $method)
+    public function setMethod($method)
     {
         $this->method = $method;
         return $this;
@@ -85,7 +85,7 @@ class Request
         return $this;
     }
 
-    public function setFormType(string $formType)
+    public function setFormType($formType)
     {
         $this->formType = $formType;
         return $this;
@@ -99,36 +99,36 @@ class Request
     //endregion
 
     //region Action methods
-    public function get(string $url = null, array $params = null)
+    public function get($url = null, $params = null)
     {
-        $this->url = $url ?? $this->url;
-        $this->params = $params ?? $this->params;
+        $this->url = $url ? $url : $this->url;
+        $this->params = is_array($params) ? $params : $this->params;
         $this->responseContent = file_get_contents($this->buildUrl());
         return $this;
     }
 
-    public function post(string $url = null, array $bodies = null)
+    public function post($url = null, $bodies = null)
     {
-        $this->url = $url ?? $this->url;
-        $this->bodies = $bodies ?? $this->bodies;
+        $this->url = $url ? $url : $this->url;
+        $this->bodies = is_array($bodies) ? $bodies : $this->bodies;
         $this->method = self::$METHOD_POST;
         $this->buildRequest();
         return $this;
     }
 
-    public function put(string $url = null, array $bodies = null)
+    public function put($url = null, $bodies = null)
     {
-        $this->url = $url ?? $this->url;
-        $this->bodies = $bodies ?? $this->bodies;
+        $this->url = $url ? $url : $this->url;
+        $this->bodies = is_array($bodies) ? $bodies : $this->bodies;
         $this->method = self::$METHOD_PUT;
         $this->buildRequest();
         return $this;
     }
 
-    public function delete(string $url = null, array $params = null)
+    public function delete($url = null, $params = null)
     {
-        $this->url = $url ?? $this->url;
-        $this->params = $params ?? $this->params;
+        $this->url = $url ? $url : $this->url;
+        $this->params = is_array($params) ? $params : $this->params;
         $this->method = self::$METHOD_DELETE;
         $this->buildRequest();
         return $this;
