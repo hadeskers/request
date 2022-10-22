@@ -17,6 +17,7 @@ class Request
 
     public static $FORM_TYPE_ENCODED = 'application/x-www-form-urlencoded';
     public static $FORM_TYPE_DATA = 'multipart/form-data';
+    public static $FORM_TYPE_JSON = 'application/json';
 
     protected $url;
     protected $method;
@@ -43,11 +44,16 @@ class Request
             return "{$key}: {$item}";
         }, $headers, array_keys($headers)));
 
+        $content = http_build_query(is_array($this->bodies) && count($this->bodies) ? $this->bodies : []);
+        if($this->formType == self::$FORM_TYPE_JSON){
+            $content = json_encode($this->bodies);
+        }
+
         $options = [
             'http' => [
                 'method' => $this->method,
                 'header' => $headerString,
-                'content' => http_build_query(is_array($this->bodies) && count($this->bodies) ? $this->bodies : []),
+                'content' => $content,
             ]
         ];
         $context = stream_context_create($options);

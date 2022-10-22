@@ -20,6 +20,7 @@ Quick start
 
 $req = new \Hadesker\Request\Request();
 $req->setUrl('https://abc.com/login');
+$req->setFormType(\Hadesker\Request\Request::$FORM_TYPE_ENCODED) // $FORM_TYPE_DATA or $FORM_TYPE_JSON or $FORM_TYPE_ENCODED (default)
 $req->setHeaders([
     'Auth'=> 'Bearer sgafaksdfasd',
 ]);
@@ -33,4 +34,4 @@ die();
 
 ```
 
-Website: https://hadesker.net _or_ http://hadesker.uk
+Website: https://hadesker.net
