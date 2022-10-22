@@ -26,7 +26,11 @@ class Request
     protected $formType;
     protected $headers;
 
+    protected $responseHeaders = [];
+    protected $cookies = [];
     protected $responseContent;
+    protected $responseStatusCode;
+    protected $_http_response_header;
 
     public function __construct($url = null, $method = 'GET')
     {
@@ -39,14 +43,22 @@ class Request
     private function buildRequest()
     {
         $headers = is_array($this->headers) && count($this->headers) ? $this->headers : [];
-        $headers['Content-type'] = $this->formType;
+        if(isset($headers['cookie'])){
+            $this->setCookieString($headers['cookie']);
+        }
+        if($this->method != self::$METHOD_GET){
+            $headers['Content-Type'] = $this->formType;
+        }
+        $this->formType = $headers['Content-Type'] ?? self::$FORM_TYPE_ENCODED;
+        $headers['cookie'] = $this->getCookieString();
         $headerString = implode("\r\n", array_map(function ($item, $key){
             return "{$key}: {$item}";
         }, $headers, array_keys($headers)));
 
-        $content = http_build_query(is_array($this->bodies) && count($this->bodies) ? $this->bodies : []);
         if($this->formType == self::$FORM_TYPE_JSON){
             $content = json_encode($this->bodies);
+        } else {
+            $content = http_build_query(is_array($this->bodies) && count($this->bodies) ? $this->bodies : []);
         }
 
         $options = [
@@ -59,6 +71,29 @@ class Request
         ];
         $context = stream_context_create($options);
         $this->responseContent = file_get_contents($this->buildUrl(), false, $context);
+        $this->_http_response_header = $http_response_header;
+        $this->setResponseHeaders();
+    }
+
+    private function setResponseHeaders(){
+        $this->responseHeaders = [];
+        foreach ($this->_http_response_header as $item){
+            if(stripos($item, ':') !== false){
+                $split = explode(':', $item);
+                if($split[0] == 'Set-Cookie'){
+                    $cookieString = explode(';', trim($split[1]))[0];
+                    $equalIndex = stripos($cookieString, '=');
+                    $name = substr($cookieString, 0, $equalIndex);
+                    $value = substr($cookieString, $equalIndex+1);
+                    $this->cookies[$name] = $value;
+                } else {
+                    $this->responseHeaders[$split[0]] = trim($split[1]);
+                }
+            } else if(stripos($item, 'HTTP/1.0') !== false){
+                $split = explode(' ', $item);
+                $this->responseStatusCode = intval($split[1]);
+            }
+        }
     }
 
     private function buildUrl()
@@ -82,13 +117,17 @@ class Request
 
     public function setParams(array $params)
     {
-        $this->params = $params;
+        foreach ($params as $name => $value){
+            $this->params[$name] = $value;
+        }
         return $this;
     }
 
     public function setBodies(array $bodies)
     {
-        $this->bodies = $bodies;
+        foreach ($bodies as $name => $value){
+            $this->bodies[$name] = $value;
+        }
         return $this;
     }
 
@@ -100,7 +139,35 @@ class Request
 
     public function setHeaders(array $headers)
     {
-        $this->headers = $headers;
+        foreach ($headers as $name => $value){
+            $this->headers[$name] = $value;
+        }
+        return $this;
+    }
+
+    public function setCookie($name, $value)
+    {
+        $this->cookies[$name] = $value;
+        return $this;
+    }
+
+    public function setCookies(array $cookies)
+    {
+        foreach ($cookies as $name=>$value){
+            $this->cookies[$name] = $value;
+        }
+        return $this;
+    }
+
+    public function setCookieString(string $cookieString)
+    {
+        $split = explode(';', $cookieString);
+        foreach ($split as $item){
+            $equalIndex = stripos($item, '=');
+            $name = substr($item, 0, $equalIndex);
+            $value = trim(substr($item, $equalIndex+1));
+            $this->cookies[$name] = $value;
+        }
         return $this;
     }
     //endregion
@@ -109,15 +176,16 @@ class Request
     public function get($url = null, $params = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->params = is_array($params) ? $params : $this->params;
-        $this->responseContent = file_get_contents($this->buildUrl());
+        $this->setParams($params ?? []);
+        $this->method = self::$METHOD_GET;
+        $this->buildRequest();
         return $this;
     }
 
     public function post($url = null, $bodies = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->bodies = is_array($bodies) ? $bodies : $this->bodies;
+        $this->setBodies($bodies ?? []);
         $this->method = self::$METHOD_POST;
         $this->buildRequest();
         return $this;
@@ -126,7 +194,7 @@ class Request
     public function put($url = null, $bodies = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->bodies = is_array($bodies) ? $bodies : $this->bodies;
+        $this->setBodies($bodies ?? []);
         $this->method = self::$METHOD_PUT;
         $this->buildRequest();
         return $this;
@@ -135,7 +203,7 @@ class Request
     public function delete($url = null, $params = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->params = is_array($params) ? $params : $this->params;
+        $this->setParams($params ?? []);
         $this->method = self::$METHOD_DELETE;
         $this->buildRequest();
         return $this;
@@ -156,6 +224,28 @@ class Request
     public function getResponseArray()
     {
         return json_decode($this->getResponse(), true);
+    }
+
+    public function getHeaders()
+    {
+        return $this->responseHeaders;
+    }
+
+    public function getStatusCode()
+    {
+        return $this->responseStatusCode;
+    }
+
+    public function getCookies()
+    {
+        return $this->cookies;
+    }
+
+    public function getCookieString()
+    {
+        return implode("; ", array_map(function ($item, $key){
+            return "{$key}={$item}";
+        }, $this->cookies, array_keys($this->cookies)));
     }
     //endregion
 }
