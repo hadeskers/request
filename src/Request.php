@@ -54,6 +54,7 @@ class Request
                 'method' => $this->method,
                 'header' => $headerString,
                 'content' => $content,
+                'ignore_errors' => true,
             ]
         ];
         $context = stream_context_create($options);
