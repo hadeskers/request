@@ -71,6 +71,9 @@ class Request
         ];
         $context = stream_context_create($options);
         $this->responseContent = file_get_contents($this->buildUrl(), false, $context);
+        $this->params = [];
+        $this->bodies = [];
+        $this->headers = [];
         $this->_http_response_header = $http_response_header;
         $this->setResponseHeaders();
     }
@@ -173,37 +176,41 @@ class Request
     //endregion
 
     //region Action methods
-    public function get($url = null, $params = null)
+    public function get($url = null, $params = null, $headers = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->setParams($params ?? []);
+        $this->params = $params ?? $this->params;
+        $this->setHeaders($headers ?? []);
         $this->method = self::$METHOD_GET;
         $this->buildRequest();
         return $this;
     }
 
-    public function post($url = null, $bodies = null)
+    public function post($url = null, $bodies = null, $headers = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->setBodies($bodies ?? []);
+        $this->bodies = $bodies ?? $this->bodies;
+        $this->setHeaders($headers ?? []);
         $this->method = self::$METHOD_POST;
         $this->buildRequest();
         return $this;
     }
 
-    public function put($url = null, $bodies = null)
+    public function put($url = null, $bodies = null, $headers = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->setBodies($bodies ?? []);
+        $this->bodies = $bodies ?? $this->bodies;
+        $this->setHeaders($headers ?? []);
         $this->method = self::$METHOD_PUT;
         $this->buildRequest();
         return $this;
     }
 
-    public function delete($url = null, $params = null)
+    public function delete($url = null, $params = null, $headers = null)
     {
         $this->url = $url ? $url : $this->url;
-        $this->setParams($params ?? []);
+        $this->params = $params ?? $this->params;
+        $this->setHeaders($headers ?? []);
         $this->method = self::$METHOD_DELETE;
         $this->buildRequest();
         return $this;
